@@ -1,6 +1,7 @@
-# MS_WML_uncs
+# Multi-scale comparative study of uncertainty measures for white matter lesion segmentation
+
 This repository contains the code used for the study of voxel- and lesion- scale uncertainty in application to 
-white matter multiple sclerosis segmentation task. 
+white matter multiple sclerosis segmentation task. It is supplementary to our [paper]().
 
 The code includes:
 * Implementations of voxel-scale uncertainty measures, such as mutual information (MI), expected pair-wise KL divergence (EPKL) and reverse mutual information (RMI) for knowledge uncertainty; expected entropy (ExE) for data uncertainty; entropy of expected (EoE) and negated confidence (NC).
@@ -57,3 +58,11 @@ Function `lesion_scale_rc(--"--)` does the same, but excludes false negative les
 
 Contains a function to extract TP, FP and FN lesions `get_tp_fp_fn_lesions(...)` given predicted segmentation map and a ground truth, 
 as well as a function to count the number of FN lesions `gt_fn_count(...)`.
+
+Citation
+---
+
+In case of using this code, please cite:
+
+```
+```
