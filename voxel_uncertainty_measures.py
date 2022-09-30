@@ -44,9 +44,11 @@ def expected_entropy(probs, epsilon=1e-10):
     return np.mean(np.sum(probs * log_probs, axis=-1), axis=0)
 
 
-def ensemble_uncertainties_classification(probs, epsilon=1e-10):
+def ensemble_uncertainties_classification(probs: np.ndarray, epsilon: float = 1e-10) -> dict:
     """
+    Compute voxel scale uncertainty measures.
     :param probs: array [num_models, num_voxels_X, num_voxels_Y, num_voxels_Z, num_classes]
+    :param epsilon: small float to avoid 0 in logs
     :return: Dictionary of uncertainties
     """
     mean_probs = np.mean(probs, axis=0)
