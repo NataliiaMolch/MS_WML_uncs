@@ -1,7 +1,7 @@
 # Multi-scale comparative study of uncertainty measures for white matter lesion segmentation
 
 This repository contains the code used for the study of voxel- and lesion- scale uncertainty in application to 
-white matter multiple sclerosis segmentation task. It is supplementary to our [paper]().
+white matter multiple sclerosis segmentation task. It is supplementary to our [paper](https://arxiv.org/abs/2211.04825).
 
 The code includes:
 * Implementations of voxel-scale uncertainty measures, such as mutual information (MI), expected pair-wise KL divergence (EPKL) and reverse mutual information (RMI) for knowledge uncertainty; expected entropy (ExE) for data uncertainty; entropy of expected (EoE) and negated confidence (NC).
@@ -65,4 +65,13 @@ Citation
 In case of using this code, please cite:
 
 ```
+@misc{https://doi.org/10.48550/arxiv.2211.04825,
+  doi = {10.48550/ARXIV.2211.04825},
+  url = {https://arxiv.org/abs/2211.04825},
+  author = {Molchanova, Nataliia and Raina, Vatsal and Malinin, Andrey and La Rosa, Francesco and Muller, Henning and Gales, Mark and Granziera, Cristina and Graziani, Mara and Cuadra, Meritxell Bach},
+  title = {Novel structural-scale uncertainty measures and error retention curves: application to multiple sclerosis},
+  publisher = {arXiv},
+  year = {2022},
+  copyright = {Creative Commons Attribution 4.0 International}
+}
 ```
