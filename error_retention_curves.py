@@ -9,10 +9,10 @@ from scipy.interpolate import interp1d
 def voxel_scale_metrics(y_pred: np.ndarray, y: np.ndarray, r: float = 0.001):
     """
     Compute DSC, nDSC, TPR, TDR, FNR.
-    :param y_pred:
-    :param y:
-    :param r: effective lesion load
-    :return: dict
+    :param y: ground truth values for each voxel in a scan
+    :param y_pred: predicted class values for the corresponding voxels
+    :param r: effective lesion load (for more info see Raina et al., 2023)
+    :return: dict with metrict
     """
     if np.sum(y) + np.sum(y_pred) == 0:
         return {'DSC': 1.0, 'nDSC': 1.0, 'TPR': 1.0, 'TDR': 1.0, 'FNR': 0.0}
@@ -33,12 +33,12 @@ def voxel_scale_rc(y_pred: np.ndarray, y: np.ndarray, uncertainties: np.ndarray,
                    n_jobs: int = None):
     """
     Compute error retention curve values and nDSC-AAC on voxel-scale.
-    :param fracs_retained:
-    :param y:
-    :param y_pred:
-    :param uncertainties:
+    :param fracs_retained: fractions of retained voxels at each iteration ( x-axis values of the error-RC )
+    :param y: ground truth values for each voxel in a scan
+    :param y_pred: predicted class values for the corresponding voxels
+    :param uncertainties: uncertainty values for the corresponding voxels
     :param n_jobs: number of parallel processes
-    :return: tuple with nDSC-AAC and nDSC values of the error retention curve
+    :return: tuple (area under the curve, y-axis values)
     """
 
     def compute_metric(frac_, preds_, gts_, N_, metric_name_):
@@ -57,14 +57,12 @@ def voxel_scale_rc(y_pred: np.ndarray, y: np.ndarray, uncertainties: np.ndarray,
     return 1. - metrics.auc(fracs_retained, np.asarray(dsc_norm_scores)), dsc_norm_scores
 
 
-def lesion_scale_lppv_rc(tp_les_uncs: list, fp_les_uncs: list, n_fn: int, fracs_retained: np.ndarray):
-    """
-    Computs lesion-scale LPPV-Rc from the paper.
+def lesion_scale_lppv_rc(tp_les_uncs: list, fp_les_uncs: list, fracs_retained: np.ndarray):
+    """Computes lesion-scale LPPV-RC and LPPV-AUC for a single subject(from the paper).
     :param tp_les_uncs: uncertainty values of all true positive lesions in a scan
     :param fp_les_uncs: uncertainty values of all false positive lesions in a scan
-    :type fracs_retained: numpy.ndarray [n_fr,]
-    :return: F1les-AAC, values of error retention curve, values of error retention curve before interpolation.
-    :rtype: tuple
+    :param fracs_retained: fractions of retained voxels at each iteration ( x-axis values of the LPPV-RC )
+    :returns: tuple (area under the curve, y-axis values)
     """
 
     def compute_lppv(lesion_types):
@@ -110,12 +108,16 @@ def lesion_scale_lppv_rc(tp_les_uncs: list, fp_les_uncs: list, n_fn: int, fracs_
 
 
 def patient_scale_rc(uncs_sample, metric_sample, replace_with: float = 1.0):
-    """Builds patient-scale error retention curves (from the paper) for a dataset.
+    """Computes patient-scale error retention curves (from the paper) for a dataset.
+    Note, to plot an error retention curve, the x-axis values should be obtained as:
+    ```python
+    
+    ```
     
     :param uncs_sample: np.ndarray or list or uncertainty values for each patient in the dataset
     :param metric_sample: np.ndarray or list of the metrics for corresponding subjects. in the paper the DSC metric was used.
     :param replace_with: value replacing the metric value for each replaced subject. if the metric is the higher the better, should be 1; if the oposite, should be 0.
-    :returns: tuple (area under the curve)
+    :returns: tuple (area under the curve, y-axis values)
     """
     metric_sample_copy = np.asarray(metric_sample).copy()
     ordering = np.argsort(uncs_sample)
