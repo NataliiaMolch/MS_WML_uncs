@@ -5,15 +5,15 @@ from functools import partial
 from .lesion_uncertainty_measures import intersection_over_union
 
 
-def get_tp_fp_fn_lesions(y_pred: np.ndarray, y: np.ndarray, IoU_threshold: float, n_jobs: int = None):
+def get_tp_fp_fn_lesions(y_pred: np.ndarray, y: np.ndarray, IoU_threshold: float, n_jobs: int = None) -> tuple:
     """
     Get binary lesion masks with TP, FP and FN lesions separately.
-    :param y_pred: predicted binary lesion mask
-    :param y: gt binary lesion mask
+    :param y_pred: predicted binary lesion mask, shape [H, W, D]
+    :param y: gt binary lesion mask, shape [H, W, D]
     :param IoU_threshold: if lesions have IoU > threshold, then they are TP, otherwise FP
     :param n_jobs: number of parallel processes
     :return: binary lesion masks with TP, FP and FN lesions separately
-    :rtype: typle
+    :rtype: tuple
     """
     def get_tp_fp(label_pred, gt_multi, pred_multi):
         lesion_pred = (pred_multi == label_pred).astype(float)
@@ -57,13 +57,13 @@ def get_tp_fp_fn_lesions(y_pred: np.ndarray, y: np.ndarray, IoU_threshold: float
            np.isin(gt_multi_mask, fn_lesions)
 
 
-def gt_fn_count(y_pred: np.ndarray, y: np.ndarray, n_jobs: int = None):
+def gt_fn_count(y_pred: np.ndarray, y: np.ndarray, n_jobs: int = None) -> float:
     """
     Get number of FN lesions (no intersection with predictions) on the ground truth binary mask.
-    :param y_pred: predicted binary lesion mask
-    :param y: gt binary lesion mask
+    :param y_pred: predicted binary lesion mask, shape [H, W, D]
+    :param y: gt binary lesion mask, shape [H, W, D]
     :param n_jobs: number of parallel processes
-    :return:
+    :return: number of false negative lesions in a scan
     """
     def get_fn(label_gt, pred_bin, gt_multi):
         lesion_gt = (gt_multi == label_gt).astype(float)

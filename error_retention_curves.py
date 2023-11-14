@@ -1,3 +1,6 @@
+"""
+Implementation of voxel and lesion scale retention curves.
+"""
 import numpy as np
 from functools import partial
 from collections import Counter
@@ -6,7 +9,7 @@ from sklearn import metrics
 from scipy.interpolate import interp1d
 
 
-def voxel_scale_metrics(y_pred: np.ndarray, y: np.ndarray, r: float = 0.001):
+def voxel_scale_metrics(y_pred: np.ndarray, y: np.ndarray, r: float = 0.001) -> dict:
     """
     Compute DSC, nDSC, TPR, TDR, FNR.
     :param y: ground truth values for each voxel in a scan
@@ -29,8 +32,9 @@ def voxel_scale_metrics(y_pred: np.ndarray, y: np.ndarray, r: float = 0.001):
         }
 
 
-def voxel_scale_rc(y_pred: np.ndarray, y: np.ndarray, uncertainties: np.ndarray, fracs_retained: np.ndarray, metric_name: str,
-                   n_jobs: int = None):
+def voxel_scale_rc(y_pred: np.ndarray, y: np.ndarray, uncertainties: np.ndarray,
+                   fracs_retained: np.ndarray = np.linspace(0.0, 1.0, 400),
+                   metric_name: str = 'DSC', n_jobs: int = None) -> tuple:
     """
     Compute error retention curve values and nDSC-AAC on voxel-scale.
     :param fracs_retained: fractions of retained voxels at each iteration ( x-axis values of the error-RC )
@@ -71,27 +75,16 @@ def lesion_scale_lppv_rc(tp_les_uncs: list, fp_les_uncs: list, fracs_retained: n
             return 0.
         return counter['tp'] / (counter['tp'] + counter['fp'])
 
-    # list of lesions uncertainties tp, fp, fn
-    uncs_list = [np.asarray(tp_les_uncs), np.asarray(fp_les_uncs)]
-    # list of lesion types
-    lesion_type_list = [np.full(shape=unc.shape, fill_value=fill)
-                        for unc, fill in zip(uncs_list, ['tp', 'fp'])
-                        if unc.size > 0]
-    uncs_list = [unc for unc in uncs_list if unc.size > 0]
-    uncs_all = np.concatenate(uncs_list, axis=0)
-    lesion_type_all = np.concatenate(lesion_type_list, axis=0)
-
-    del uncs_list, lesion_type_list
-    assert uncs_all.shape == lesion_type_all.shape
+    assert lesion_uncertainties.shape == lesion_types.shape
 
     # sort uncertainties and lesions types
-    ordering = uncs_all.argsort()
-    lesion_type_all = lesion_type_all[ordering][::-1]
+    ordering = lesion_uncertainties.argsort()
+    lesion_types = lesion_types[ordering][::-1]
 
     metric_values = [compute_lppv(lesion_type_all)]
 
-    # reject the most certain lesion
-    for i_l, lesion_type in enumerate(lesion_type_all):
+    # reject the most uncertain lesion
+    for i_l, lesion_type in enumerate(lesion_types):
         if lesion_type == 'fp':
             lesion_type_all[i_l] = 'tn'
         elif lesion_type == 'fn':
@@ -99,7 +92,7 @@ def lesion_scale_lppv_rc(tp_les_uncs: list, fp_les_uncs: list, fracs_retained: n
         metric_values.append(compute_lppv(lesion_type_all))
 
     # interpolate the curve and make predictions in the retention fraction nodes
-    n_lesions = lesion_type_all.shape[0]
+    n_lesions = lesion_types.shape[0]
     spline_interpolator = interp1d(x=[_ / n_lesions for _ in range(n_lesions + 1)],
                                    y=metric_values[::-1],
                                    kind='slinear', fill_value="extrapolate")
