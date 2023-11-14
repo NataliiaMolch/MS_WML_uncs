@@ -1,7 +1,6 @@
 import numpy as np
 from joblib import Parallel, delayed
 from functools import partial
-import warnings
 
 
 def intersection_over_union(mask1, mask2):
@@ -139,8 +138,6 @@ def lesions_uncertainty(y_pred_multi: np.ndarray, vox_unc_maps: dict, ens_pred_m
                 v = el[k]
                 dl[k].append(v)
         return dl
-
-    warnings.filterwarnings("ignore")
 
     cc_labels = np.unique(y_pred_multi)
     cc_labels = cc_labels[cc_labels != 0.0]
