@@ -1,3 +1,7 @@
+from scipy import ndimage
+import numpy as np
+
+
 def remove_connected_components(segmentation, l_min=3):
     """Remove small lesions leq than `l_min` voxels from the binary segmentation mask.
     """
