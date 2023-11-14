@@ -22,6 +22,29 @@ The data was also provided by the Shifts project. Already preprocessed data can 
 
 The "train" and "dev in" sets were used for training and validation. The "eval in" and "dev out" sets were used for retention curves construction.
 
+Modules description
+----
+
+Module "voxel_uncertainty_measures.py" contains implementations of voxel-scale uncertainty measures. Function
+`ensemble_uncertainties_classification(probs, epsilon) -> dict` allows obtaining 
+all the uncertainty maps for a single scan described in the paper.
+
+Module "lesion_uncertainty_measures.py" contains implementations of lesion-scale uncertainty measures described in the paper. Function 
+`lesions_uncertainty(y_pred_multi, vox_unc_maps, ens_pred_multi, ens_pred_multi_true, n_jobs, dl)` allows obtaining
+lesion uncertainty measures for each lesion in the scan. Function `lesions_uncertainty_maps(y_pred_multi, vox_unc_maps, ens_pred_multi, ens_pred_multi_true, n_jobs, dl) -> dict` allows obtaining
+different lesion uncertainty maps for a particular scans.
+
+Module "patient_uncertainty_measures.py" contains implementations of patient-scale uncertainty measures described in the paper. Function 
+`patient_uncertainty(ens_pred_probs: np.ndarray, brain_mask: np.ndarray,ens_prob_thresh: float, mem_prob_threshs: list, subject_lesion_uncs: pd.DataFrame, l_min: int)` computes all uncertainty measures for a single scan.
+
+Module "error_retention_curves.py" contains implementations of voxel- lesion-, and patient- scale retention curves.
+Function `voxel_scale_rc(y_pred, y, uncertainties, fracs_retained, metric_name, n_jobs) -> tuple` given uncertainty estimates builds voxel scale retention curve for a chosen segmentation quality metric and computes area above the retention curve for a single scan.
+Function `lesion_scale_lppv_rc(tp_les_uncs: list, fp_les_uncs: list, fracs_retained: np.ndarray) -> tuple` given uncertainty values for true positive and false positive lesions builds lesion positive predicted value retention curve for a particular scan.
+Function `patient_scale_rc(uncs_sample, metric_sample, replace_with: float = 1.0) -> tuple` given patient uncertainties and performance metrics builds a patient-scale error rc for the whole dataset.
+
+Module "lesion_extraction.py" contains a function to extract TP, FP and FN lesions `get_tp_fp_fn_lesions(...)` given predicted segmentation map and a ground truth, 
+as well as a function to count the number of FN lesions `gt_fn_count(...)`.
+
 Citiation
 ----
 
