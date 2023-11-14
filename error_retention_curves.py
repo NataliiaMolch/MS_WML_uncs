@@ -104,7 +104,8 @@ def patient_scale_rc(uncs_sample, metric_sample, replace_with: float = 1.0):
     """Computes patient-scale error retention curves (from the paper) for a dataset.
     Note, to plot an error retention curve, the x-axis values should be obtained as:
     ```python
-    
+    n_patients = len(uncs_sample)
+    fracs_retained = np.linspace(0.0, 1.0, len(n_patients) + 1)
     ```
     
     :param uncs_sample: np.ndarray or list or uncertainty values for each patient in the dataset
