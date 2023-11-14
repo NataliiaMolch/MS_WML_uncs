@@ -65,13 +65,13 @@ Citation
 In case of using this code, please cite:
 
 ```
-@misc{https://doi.org/10.48550/arxiv.2211.04825,
-  doi = {10.48550/ARXIV.2211.04825},
-  url = {https://arxiv.org/abs/2211.04825},
-  author = {Molchanova, Nataliia and Raina, Vatsal and Malinin, Andrey and La Rosa, Francesco and Muller, Henning and Gales, Mark and Granziera, Cristina and Graziani, Mara and Cuadra, Meritxell Bach},
-  title = {Novel structural-scale uncertainty measures and error retention curves: application to multiple sclerosis},
-  publisher = {arXiv},
-  year = {2022},
-  copyright = {Creative Commons Attribution 4.0 International}
-}
+@INPROCEEDINGS{10230563,
+  author={Molchanova, Nataliia and Raina, Vatsal and Malinin, Andrey and La Rosa, Francesco and Muller, Henning and Gales, Mark and Granziera, Cristina and Graziani, Mara and Cuadra, Meritxell Bach},
+  booktitle={2023 IEEE 20th International Symposium on Biomedical Imaging (ISBI)}, 
+  title={Novel Structural-Scale Uncertainty Measures and Error Retention Curves: Application to Multiple Sclerosis}, 
+  year={2023},
+  volume={},
+  number={},
+  pages={1-5},
+  doi={10.1109/ISBI53787.2023.10230563}}
 ```
