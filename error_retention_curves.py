@@ -57,74 +57,21 @@ def voxel_scale_rc(y_pred: np.ndarray, y: np.ndarray, uncertainties: np.ndarray,
     return 1. - metrics.auc(fracs_retained, np.asarray(dsc_norm_scores)), dsc_norm_scores
 
 
-def lesion_scale_rc(tp_les_uncs: list, fp_les_uncs: list, fn_les_uncs: list, fracs_retained: np.ndarray):
+def lesion_scale_lppv_rc(tp_les_uncs: list, fp_les_uncs: list, n_fn: int, fracs_retained: np.ndarray):
     """
-    Compute error retention curve values and F1les-AAC on lesion-scale including fasle negative lesions.
-    :param tp_les_uncs:
-    :param fp_les_uncs:
-    :param fn_les_uncs:
+    Computs lesion-scale LPPV-Rc from the paper.
+    :param tp_les_uncs: uncertainty values of all true positive lesions in a scan
+    :param fp_les_uncs: uncertainty values of all false positive lesions in a scan
     :type fracs_retained: numpy.ndarray [n_fr,]
     :return: F1les-AAC, values of error retention curve, values of error retention curve before interpolation.
     :rtype: tuple
     """
 
-    def compute_f1(lesion_types):
+    def compute_lppv(lesion_types):
         counter = Counter(lesion_types)
-        if counter['tp'] + 0.5 * (counter['fp'] + counter['fn']) == 0.0:
-            return 0
-        return counter['tp'] / (counter['tp'] + 0.5 * (counter['fp'] + counter['fn']))
-
-    # list of lesions uncertainties tp, fp, fn
-    uncs_list = [np.asarray(tp_les_uncs),
-                 np.asarray(fp_les_uncs),
-                 np.asarray(fn_les_uncs)]
-    # list of lesion types
-    lesion_type_list = [np.full(shape=unc.shape, fill_value=fill)
-                        for unc, fill in zip(uncs_list, ['tp', 'fp', 'fn'])
-                        if unc.size > 0]
-    uncs_list = [unc for unc in uncs_list if unc.size > 0]
-    uncs_all = np.concatenate(uncs_list, axis=0)
-    lesion_type_all = np.concatenate(lesion_type_list, axis=0)
-
-    del uncs_list, lesion_type_list
-    assert uncs_all.shape == lesion_type_all.shape
-
-    # sort uncertainties and lesions types
-    ordering = uncs_all.argsort()
-    lesion_type_all = lesion_type_all[ordering][::-1]
-
-    f1_values = [compute_f1(lesion_type_all)]
-
-    # reject the most certain lesion
-    for i_l, lesion_type in enumerate(lesion_type_all):
-        if lesion_type == 'fp':
-            lesion_type_all[i_l] = 'tn'
-        elif lesion_type == 'fn':
-            lesion_type_all[i_l] = 'tp'
-        f1_values.append(compute_f1(lesion_type_all))
-
-    # interpolate the curve and make predictions in the retention fraction nodes
-    n_lesions = lesion_type_all.shape[0]
-    spline_interpolator = interp1d(x=[_ / n_lesions for _ in range(n_lesions + 1)],
-                                   y=f1_values[::-1],
-                                   kind='slinear', fill_value="extrapolate")
-    f1_interp = spline_interpolator(fracs_retained)
-    return 1. - metrics.auc(fracs_retained, np.asarray(f1_interp)), f1_interp
-
-
-def lesion_scale_rc_nofn(tp_les_uncs: list, fp_les_uncs: list, n_fn: int, fracs_retained: np.ndarray):
-    """
-    Compute error retention curve values and F1les-AAC on lesion-scale without false negative lesions.
-    :type fracs_retained: numpy.ndarray [n_fr,]
-    :return: F1les-AAC, values of error retention curve, values of error retention curve before interpolation.
-    :rtype: tuple
-    """
-
-    def compute_f1(lesion_types, num_fn):
-        counter = Counter(lesion_types)
-        if counter['tp'] + 0.5 * (counter['fp'] + num_fn) == 0.0:
+        if counter['tp'] + counter['fp'] == 0.0:
             return 0.
-        return counter['tp'] / (counter['tp'] + 0.5 * (counter['fp'] + num_fn))
+        return counter['tp'] / (counter['tp'] + counter['fp'])
 
     # list of lesions uncertainties tp, fp, fn
     uncs_list = [np.asarray(tp_les_uncs), np.asarray(fp_les_uncs)]
@@ -143,7 +90,7 @@ def lesion_scale_rc_nofn(tp_les_uncs: list, fp_les_uncs: list, n_fn: int, fracs_
     ordering = uncs_all.argsort()
     lesion_type_all = lesion_type_all[ordering][::-1]
 
-    f1_values = [compute_f1(lesion_type_all, num_fn=n_fn)]
+    metric_values = [compute_lppv(lesion_type_all)]
 
     # reject the most certain lesion
     for i_l, lesion_type in enumerate(lesion_type_all):
@@ -151,12 +98,31 @@ def lesion_scale_rc_nofn(tp_les_uncs: list, fp_les_uncs: list, n_fn: int, fracs_
             lesion_type_all[i_l] = 'tn'
         elif lesion_type == 'fn':
             lesion_type_all[i_l] = 'tp'
-        f1_values.append(compute_f1(lesion_type_all, num_fn=n_fn))
+        metric_values.append(compute_lppv(lesion_type_all))
 
     # interpolate the curve and make predictions in the retention fraction nodes
     n_lesions = lesion_type_all.shape[0]
     spline_interpolator = interp1d(x=[_ / n_lesions for _ in range(n_lesions + 1)],
-                                   y=f1_values[::-1],
+                                   y=metric_values[::-1],
                                    kind='slinear', fill_value="extrapolate")
-    f1_interp = spline_interpolator(fracs_retained)
-    return 1. - metrics.auc(fracs_retained, np.asarray(f1_interp)), f1_interp
+    metric_values_interp = spline_interpolator(fracs_retained)
+    return 1. - metrics.auc(fracs_retained, np.asarray(metric_values_interp)), metric_values_interp
+
+
+def patient_scale_rc(uncs_sample, metric_sample, replace_with: float = 1.0):
+    """Builds patient-scale error retention curves (from the paper) for a dataset.
+    
+    :param uncs_sample: np.ndarray or list or uncertainty values for each patient in the dataset
+    :param metric_sample: np.ndarray or list of the metrics for corresponding subjects. in the paper the DSC metric was used.
+    :param replace_with: value replacing the metric value for each replaced subject. if the metric is the higher the better, should be 1; if the oposite, should be 0.
+    :returns: tuple (area under the curve)
+    """
+    metric_sample_copy = np.asarray(metric_sample).copy()
+    ordering = np.argsort(uncs_sample)
+    metric_sample_copy = metric_sample_copy[ordering]
+    rc = [metric_sample_copy.mean()]
+    for idx in range(0, len(metric_sample_copy))[::-1]:
+        metric_sample_copy[idx] = replace_with
+        rc += [metric_sample_copy.mean()]
+    fracs_retained = np.linspace(0, 1, len(rc))
+    return metrics.auc(fracs_retained, np.asarray(rc)[::-1]), np.asarray(rc)[::-1]
