@@ -10,7 +10,7 @@ vox_uncs_measures = [
     'confidence', 'entropy_of_expected', 'expected_entropy', 'mutual_information', 'epkl', 'reverse_mutual_information'
 ]
 les_uncs_measures = [
-    'mean_iou_det', 'mean_iou_det_true'
+    'LSU', 'LSU$^{+}$'
 ]
 for vum in vox_uncs_measures:
     les_uncs_measures.append(f"mean {vum}")
@@ -69,7 +69,7 @@ def single_lesion_uncertainty(cc_mask: np.ndarray, vox_unc_maps: dict, ens_pred_
     ens_ious_true = get_max_ious_ccmasks_ens(ens_pred_multi_true)
 
     res.update({
-        'mean_iou_det': 1 - np.mean(ens_ious), 'mean_iou_det_true': 1 - np.mean(ens_ious_true)
+        'LSU': 1 - np.mean(ens_ious), 'LSU$^{+}$': 1 - np.mean(ens_ious_true)
     })
     return res
 
