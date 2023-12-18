@@ -6,6 +6,17 @@ from joblib import Parallel, delayed
 from functools import partial
 
 
+vox_uncs_measures = [
+    'confidence', 'entropy_of_expected', 'expected_entropy', 'mutual_information', 'epkl', 'reverse_mutual_information'
+]
+les_uncs_measures = [
+    'mean_iou_det', 'mean_iou_det_true'
+]
+for vum in vox_uncs_measures:
+    les_uncs_measures.append(f"mean {vum}")
+    les_uncs_measures.append(f"logsum {vum}")
+
+
 def intersection_over_union(mask1, mask2):
     """Compute IoU for 2 binary masks
     mask1 and mask2 should have same dimensions
@@ -28,20 +39,16 @@ def single_lesion_uncertainty(cc_mask: np.ndarray, vox_unc_maps: dict, ens_pred_
 
     def get_max_ious_ccmasks_ens(ens_multi):
         ens_ious_ = []
-        ens_cc_masks_ = []
         for m in range(ens_multi.shape[0]):
             max_iou = 0.0
-            max_cc_mask = np.zeros_like(cc_mask)
             for intersec_label in np.unique(cc_mask * ens_multi[m]):
                 if intersec_label != 0.0:
                     lesion_m = (ens_multi[m] == intersec_label).astype(float)
                     iou = intersection_over_union(cc_mask, lesion_m)
                     if iou > max_iou:
                         max_iou = iou
-                        max_cc_mask = lesion_m.copy()
             ens_ious_.append(max_iou)
-            ens_cc_masks_.append(max_cc_mask)
-        return ens_ious_, ens_cc_masks_
+        return ens_ious_
 
     ''' Check inputs '''
     if not cc_mask.shape == ens_pred_multi[0].shape:
@@ -58,8 +65,8 @@ def single_lesion_uncertainty(cc_mask: np.ndarray, vox_unc_maps: dict, ens_pred_
 
     ''' Detection uncertainties '''
     # 1 - mean IoU of connected components on the ensemble's models prediction with cc_mask
-    ens_ious, ens_cc_masks = get_max_ious_ccmasks_ens(ens_pred_multi)
-    ens_ious_true, ens_cc_masks_true = get_max_ious_ccmasks_ens(ens_pred_multi_true)
+    ens_ious = get_max_ious_ccmasks_ens(ens_pred_multi)
+    ens_ious_true = get_max_ious_ccmasks_ens(ens_pred_multi_true)
 
     res.update({
         'mean_iou_det': 1 - np.mean(ens_ious), 'mean_iou_det_true': 1 - np.mean(ens_ious_true)
@@ -132,7 +139,6 @@ def lesions_uncertainty_maps(y_pred_multi, vox_uncs_map, ens_pred_multi,
         ) for cc_label in cc_labels)  # returns lists of dictionaries, but need dictionary of lists
 
     if les_uncs_list:
-        les_uncs_measures = list(les_uncs_list[0].keys())
         results = dict(zip(les_uncs_measures, [np.zeros_like(y_pred_multi, dtype='float') for _ in les_uncs_measures]))
         # for each measure of uncertainty create a lesion uncertainty map
         for cc_label, uncs_dict in zip(cc_labels, les_uncs_list):
