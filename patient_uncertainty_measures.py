@@ -42,7 +42,7 @@ def lesion_scale_measures(subject_lesion_uncs: pd.DataFrame):
         else:
             return arr
         
-    from .lesion_uncertainty_measures import evaluated_uncertainty_measures
+    from .lesion_uncertainty_measures import les_uncs_measures as evaluated_uncertainty_measures
     
     result = dict()
     measures = set(evaluated_uncertainty_measures).intersection(set(subject_lesion_uncs.columns))
