@@ -61,10 +61,10 @@ def voxel_scale_rc(y_pred: np.ndarray, y: np.ndarray, uncertainties: np.ndarray,
     return 1. - metrics.auc(fracs_retained, np.asarray(dsc_norm_scores)), dsc_norm_scores
 
 
-def lesion_scale_lppv_rc(tp_les_uncs: list, fp_les_uncs: list, fracs_retained: np.ndarray):
+def lesion_scale_lppv_rc(lesion_uncertainties: list, lesion_types: list, fracs_retained: np.ndarray):
     """Computes lesion-scale LPPV-RC and LPPV-AUC for a single subject(from the paper).
-    :param tp_les_uncs: uncertainty values of all true positive lesions in a scan
-    :param fp_les_uncs: uncertainty values of all false positive lesions in a scan
+    :param lesion_uncertainties: a list of uncertainty values of all predicted lesions in a scan, i.e. of all true positive lesions
+    :param lesion_types: a list of types of the corresponding predicted lesions. avaliable lesion types: 'tp', 'fp', which stand for true positive and false positive lesions respectively.
     :param fracs_retained: fractions of retained voxels at each iteration ( x-axis values of the LPPV-RC )
     :returns: tuple (area under the curve, y-axis values)
     """
@@ -75,11 +75,11 @@ def lesion_scale_lppv_rc(tp_les_uncs: list, fp_les_uncs: list, fracs_retained: n
             return 0.
         return counter['tp'] / (counter['tp'] + counter['fp'])
 
-    assert lesion_uncertainties.shape == lesion_types.shape
+    assert len(lesion_uncertainties) == len(lesion_types)
 
     # sort uncertainties and lesions types
     ordering = lesion_uncertainties.argsort()
-    lesion_types = lesion_types[ordering][::-1]
+    lesion_type_all = lesion_types[ordering][::-1]
 
     metric_values = [compute_lppv(lesion_type_all)]
 
@@ -87,12 +87,10 @@ def lesion_scale_lppv_rc(tp_les_uncs: list, fp_les_uncs: list, fracs_retained: n
     for i_l, lesion_type in enumerate(lesion_types):
         if lesion_type == 'fp':
             lesion_type_all[i_l] = 'tn'
-        elif lesion_type == 'fn':
-            lesion_type_all[i_l] = 'tp'
         metric_values.append(compute_lppv(lesion_type_all))
 
     # interpolate the curve and make predictions in the retention fraction nodes
-    n_lesions = lesion_types.shape[0]
+    n_lesions = len(lesion_types)
     spline_interpolator = interp1d(x=[_ / n_lesions for _ in range(n_lesions + 1)],
                                    y=metric_values[::-1],
                                    kind='slinear', fill_value="extrapolate")
