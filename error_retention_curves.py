@@ -84,7 +84,7 @@ def lesion_scale_lppv_rc(lesion_uncertainties: list, lesion_types: list, fracs_r
     metric_values = [compute_lppv(lesion_type_all)]
 
     # reject the most uncertain lesion
-    for i_l, lesion_type in enumerate(lesion_types):
+    for i_l, lesion_type in enumerate(lesion_type_all):
         if lesion_type == 'fp':
             lesion_type_all[i_l] = 'tn'
         metric_values.append(compute_lppv(lesion_type_all))
