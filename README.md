@@ -13,7 +13,8 @@ The code includes:
 Model
 ----
 
-The model used for the current study is a U-net architecture. The code for training and testing as well as the model weights was developed during the [Shifts project](https://shifts.ai/) and is available in the [Shifts GitHub](https://github.com/Shifts-Project/shifts/tree/main/mswml).
+The models used in these studies are public benchmarks, including a baseline model from the Shifts 2.0 Challenge ([Shifts project](https://shifts.ai/)) and a nnU-Net architecture trained on the Shifts data splits. The code for model training and inference can be found in the [Shifts GitHub](https://github.com/Shifts-Project/shifts/tree/main/mswml) and [nnU-Net V2 GitHub](https://github.com/MIC-DKFZ/nnUNet). 
+We make the model weights available for download at [link](https://drive.google.com/drive/folders/152EyvUIfBLv7RIlW55_kZ4DaA0wM7Pk2?usp=drive_link).
 
 Data
 ----
