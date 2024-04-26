@@ -71,3 +71,8 @@ Cite these works in case of using the code.
   pages={1-5},
   doi={10.1109/ISBI53787.2023.10230563}}
 ```
+
+License
+----
+
+The work is protected by the CC BY-NC-SA 4.0 license (Attribution-NonCommercial-ShareAlike 4.0 International). More info in the LICENSE.txt.
