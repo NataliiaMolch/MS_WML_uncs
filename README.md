@@ -52,10 +52,10 @@ Citiation
 Cite these works in case of using the code.
 
 ```bibtex
-@misc{molchanova2023structuralbased,
+@misc{molchanova2024structuralbased,
       title={Structural-Based Uncertainty in Deep Learning Across Anatomical Scales: Analysis in White Matter Lesion Segmentation}, 
       author={Nataliia Molchanova and Vatsal Raina and Andrey Malinin and Francesco La Rosa and Adrien Depeursinge and Mark Gales and Cristina Granziera and Henning Muller and Mara Graziani and Meritxell Bach Cuadra},
-      year={2023},
+      year={2024},
       eprint={2311.08931},
       archivePrefix={arXiv},
       primaryClass={cs.CV}
